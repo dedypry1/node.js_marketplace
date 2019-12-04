@@ -49,7 +49,7 @@ router.post('/add-page', function(req, res) {
        Page.findOne({link:link}, function (err, page) {
           if(page){
               req.flash('danger','Page ini telah ada, silahkan gunakan nama lain');
-              res.render('admin/add-page',{
+              res.render('admin/add_page',{
                   title:title,
                   link : link,
                   content : content
