@@ -1,0 +1,65 @@
+
+router.post('/edit-page', function(req, res) {
+
+    req.checkBody('title','title harus di isi').notEmpty();
+    req.checkBody('content','content harus di isi').notEmpty();
+ 
+    var title = req.body.title;
+    var link = req.body.link.replace(/\s+/g,'-').toLowerCase();
+ 
+    if (link==""){
+        link = req.body.title.replace(/\s+/g,'-').toLowerCase();
+    }
+    var content = req.body.content;
+    var id= req.body.id;
+ 
+    var errors = req.validationErrors();
+ 
+    if (errors){
+        res.render('admin/edit_page',{
+            errors:errors,
+            title:title,
+            link:link,
+            content:content,
+            id:id
+        });
+    }else{
+        Page.findOne({link:link,_id :{'$ne':id}}, function (err, page) {
+           if(page){
+               req.flash('danger','Page ini telah ada, silahkan gunakan nama lain');
+               res.render('admin/edit-page',{
+                   title:title,
+                   link : link,
+                   content : content,
+                   id:id
+               });
+           } else{
+               page.findById(id, function(err){
+                   if(err){
+                       return console.log(err);
+                     };
+
+                     page.title = title;
+                     page.link = link;
+                     page.content = content;
+                     page.save(function(err){
+                         if (err){
+                             return console.log(err);
+                         }
+                         Page.find({}).sort({sorting : 1}).exec(function(err,pages){
+                            if(err){
+                                console.log(err);
+                            }else{
+                                req.app.locals.pages =pages ;
+                            }
+                        });
+                        req.flash('success','Page berhasil di tambahkan');
+                        res.render('/admin/edit-page' + id);
+                     });
+                       
+               });
+           };
+        });
+    };
+ });
+ 
